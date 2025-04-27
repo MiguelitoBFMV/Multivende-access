@@ -18,6 +18,12 @@ BRAVE_DRIVER_PATH = os.getenv("BRAVE")
 USER = os.getenv("USER")
 PASSWORD = os.getenv("PASSWORD")
 
+
+def create_text(text):
+    with open('products_error.txt', 'w', encoding='utf-8') as file:
+        file.write(text)
+
+
 #Obtaines the connection to the web page
 def connect(URL):
     options = Options()
@@ -32,6 +38,7 @@ def connect(URL):
     return driver
 
 
+#Wait for the element to be present in the DOM
 def wait_for_element(connection, element, duration):
     wait = WebDriverWait(connection, duration)
     element_found = wait.until(EC.presence_of_element_located(element))
@@ -39,7 +46,7 @@ def wait_for_element(connection, element, duration):
 
 #Autocomplete authentication and wait for captcha to be ready
 def login(connection):
-    #Add script for catch verification in a new brand
+    #Add script wait element for catch verification in a new brand
     sleep(2)
     connection.find_element(By.NAME, "email").send_keys(USER)#ACCESS DATA
     connection.find_element(By.ID, "password").send_keys(PASSWORD)#ACCESS DATA
@@ -48,17 +55,22 @@ def login(connection):
 def error_sync_button(connection, marketplace):
     cont = 0
     while cont < 3:
-        table = wait_for_element(connection, (By.ID, ('DataTables_Table_' + str(cont))), 3)
+        table = wait_for_element(connection, (By.ID, ('DataTables_Table_' + str(cont))), 20)
         row = table.find_element(By.XPATH, '//tr[./td[contains(., "' + marketplace + '")]]')
         row.find_element(By.CSS_SELECTOR, '[uib-popover="Ver productos con error de sincronización"]').click()
         cont = 3
         sleep(5)
     else:
         cont += 1
-    products_error()
+    products_error(connection)
 
-def products_error():
-    pass
+def products_error(connection):
+    wait_for_element(connection, (By.XPATH, "//span[contains(text(), 'Error de sincronización') and @role='button']"), 15).click()
+    panel = wait_for_element(connection, (By.XPATH, '//pre[contains(@class,"ng-binding ng-scope")]'), 10)
+    message_error = panel.text
+    
+    create_text(message_error)#Create a file with the error message
+    sleep(10)
 
 def main():
     URL = 'https://app.multivende.com/login'
