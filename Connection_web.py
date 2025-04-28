@@ -1,4 +1,5 @@
 import os
+import json
 import selenium.webdriver as webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -68,8 +69,8 @@ def products_error(connection):
     wait_for_element(connection, (By.XPATH, "//span[contains(text(), 'Error de sincronización') and @role='button']"), 15).click()
     panel = wait_for_element(connection, (By.XPATH, '//pre[contains(@class,"ng-binding ng-scope")]'), 10)
     message_error = panel.text
-    
-    create_text(message_error)#Create a file with the error message
+    data = json.loads(message_error)
+    create_text(data["code"])#Create a file with the error message
     sleep(10)
 
 def main():
